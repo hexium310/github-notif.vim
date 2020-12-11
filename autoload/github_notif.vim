@@ -111,18 +111,19 @@ function! s:OnStderr(job_id, data, event) dict
 endfunction
 
 function! s:CreateBuffer() abort
-  if !bufexists('github-notif')
+  if !exists('s:notif_buffer')
     let bufnr = nvim_create_buf(v:false, v:true)
     call nvim_buf_set_option(bufnr, 'filetype', 'github_notif')
     call nvim_buf_set_name(bufnr, 'github-notif')
   else
-    for buffer in getbufinfo('github-notif')
+    for buffer in getbufinfo(s:notif_buffer)
       let bufnr = buffer.bufnr
       let winnr = get(buffer.windows, 0, -1)
       break
     endfor
   endif
 
+  let s:notif_buffer = bufnr
   return [bufnr, get(l:, 'winnr', -1)]
 endfunction
 
