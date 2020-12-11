@@ -153,6 +153,9 @@ function! s:SetNotificationsText(data) abort
     let title = datum.subject.title
     let type = datum.subject.type
     let url = datum.subject.url
+    let url = substitute(url, '//api.', '//', '')
+    let url = substitute(url, '/repos/', '/', '')
+    let url = substitute(url, '/pulls/', '/pull/', '')
 
     let text = [
       \   printf("● %s  %s  %s  %s", full_name, title, reason, type),
