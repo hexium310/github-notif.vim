@@ -27,7 +27,6 @@ function! github_notif#run() abort
 endfunction
 
 function! github_notif#open() abort
-  let g:github_notif_read = 0
   call s:OpenBuffer()
 endfunction
 
@@ -138,6 +137,7 @@ function! s:OpenBuffer() abort
   endif
 
   split github-notif
+  let g:github_notif_read = 0
 endfunction
 
 function! s:SetNotificationsText(data) abort
@@ -169,7 +169,6 @@ function! s:SetNotificationsText(data) abort
 
   let [bufnr; _] = s:CreateBuffer()
   call nvim_buf_set_lines(bufnr, 0, -1, v:true, flatten(copy(s:texts)))
-  let g:github_notif_read = 0
 endfunction
 
 function! s:Uniq(list) abort
