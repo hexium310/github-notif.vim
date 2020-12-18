@@ -110,20 +110,26 @@ function! s:OnStderr(job_id, data, event) dict
 endfunction
 
 function! s:CreateBuffer() abort
-  if !exists('s:notif_buffer')
+  let buffers = getbufinfo(get(s:, 'notif_buffer', -1))
+  if empty(buffers)
     let bufnr = nvim_create_buf(v:false, v:true)
-    call nvim_buf_set_option(bufnr, 'filetype', 'github_notif')
-    call nvim_buf_set_name(bufnr, 'github-notif')
   else
-    for buffer in getbufinfo(s:notif_buffer)
-      let bufnr = buffer.bufnr
-      let winnr = get(buffer.windows, 0, -1)
-      break
-    endfor
+    let buffer = buffers[0]
+    let bufnr = buffer.bufnr
+    let winnr = get(buffer.windows, 0, -1)
   endif
+  call s:SetBufferOption(bufnr)
 
   let s:notif_buffer = bufnr
   return [bufnr, get(l:, 'winnr', -1)]
+endfunction
+
+function s:SetBufferOption(bufnr) abort
+  call nvim_buf_set_option(a:bufnr, 'filetype', 'github_notif')
+  call nvim_buf_set_option(a:bufnr, 'buftype', 'nowrite')
+  call nvim_buf_set_option(a:bufnr, 'bufhidden', 'delete')
+  call nvim_buf_set_option(a:bufnr, 'swapfile', v:false)
+  call nvim_buf_set_name(a:bufnr, 'github-notif')
 endfunction
 
 function! s:OpenBuffer() abort
@@ -131,12 +137,7 @@ function! s:OpenBuffer() abort
 
   call nvim_buf_set_lines(bufnr, 0, -1, v:true, flatten(copy(s:texts)))
 
-  if winnr >= 0
-    call win_gotoid(winnr)
-    return
-  endif
-
-  split github-notif
+  execute('sbuffer ' . bufnr)
   let g:github_notif_read = 0
 endfunction
 
