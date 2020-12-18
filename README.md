@@ -39,4 +39,6 @@ let g:github_notif_token = 'XXXXXXXX'
 let g:github_notif_interval = 60
 " The base url for using GitHub API
 let g:github_notif_base_url = 'https://api.github.com/'
+" If you fetch instantly the notifications
+let g:github_notif_fetch_instantly = 1
 ```

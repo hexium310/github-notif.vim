@@ -23,6 +23,9 @@ function! github_notif#run() abort
   endif
 
   let poll_interval = get(g:, 'github_notif_interval', s:default_interval)
+  if get(g:, 'github_notif_fetch_instantly', 0)
+    call github_notif#get()
+  endif
   let s:timer_id = timer_start(poll_interval * 1000, { timer -> github_notif#get() }, { 'repeat': -1 })
 endfunction
 
