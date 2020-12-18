@@ -42,3 +42,7 @@ let g:github_notif_base_url = 'https://api.github.com/'
 " If you fetch instantly the notifications
 let g:github_notif_fetch_instantly = 1
 ```
+
+## Other
+
+You can use `g:github_notif_unread` for a status line plugin.

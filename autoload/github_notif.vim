@@ -1,6 +1,5 @@
 let s:default_interval = 60
 let s:texts = []
-let g:github_notif_read = 0
 
 function! github_notif#get(...) abort
   let options = get(a:, 1, {})
@@ -105,7 +104,12 @@ function! s:OnStdout(jobid, data, event) abort
     return
   endif
 
-  call s:SetNotificationsText(json)
+  let [bufnr, winnr] = s:CreateBuffer()
+  call s:SetNotificationsText(bufnr, json)
+
+  if winnr < 0
+    let g:github_notif_unread = 1
+  endif
 endfunction
 
 function! s:OnStderr(job_id, data, event) dict
@@ -141,10 +145,10 @@ function! s:OpenBuffer() abort
   call nvim_buf_set_lines(bufnr, 0, -1, v:true, flatten(copy(s:texts)))
 
   execute('sbuffer ' . bufnr)
-  let g:github_notif_read = 0
+  let g:github_notif_unread = 0
 endfunction
 
-function! s:SetNotificationsText(data) abort
+function! s:SetNotificationsText(bufnr, data) abort
   if type(a:data) != v:t_list
     return
   endif
@@ -169,10 +173,8 @@ function! s:SetNotificationsText(data) abort
   endfor
 
   let s:texts = s:Uniq(texts + s:texts)
-  let g:github_notif_read = 1
 
-  let [bufnr; _] = s:CreateBuffer()
-  call nvim_buf_set_lines(bufnr, 0, -1, v:true, flatten(copy(s:texts)))
+  call nvim_buf_set_lines(a:bufnr, 0, -1, v:true, flatten(copy(s:texts)))
 endfunction
 
 function! s:Uniq(list) abort
