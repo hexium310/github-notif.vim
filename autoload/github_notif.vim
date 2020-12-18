@@ -7,8 +7,17 @@ function! github_notif#get(...) abort
   let interval_difference = poll_interval - get(g:, 'github_notif_interval', s:default_interval)
   call wait(max([interval_difference, poll_interval]), { -> v:false })
 
+  let token = get(g:, 'github_notif_token', '')
+  if empty(token)
+    echohl ErrorMsg
+    echomsg 'g:github_notif_token is not set'
+    echohl None
+    call github_notif#stop()
+    return
+  endif
+
   let modified_since = get(options, 'force', v:false) ? '' : 'If-Modified-Since: ' . get(s:, 'last_getting_time', '')
-  let command = s:Curl('notifications', { 'headers': [modified_since] })
+  let command = s:Curl('notifications', token, { 'headers': [modified_since] })
   let s:notifications_get_job = jobstart(command, {
     \   'on_stdout': function('s:OnStdout'),
     \   'on_stderr': function('s:OnStderr'),
@@ -41,27 +50,26 @@ function! github_notif#stop() abort
   unlet s:timer_id
 endfunction
 
-function! s:Curl(endpoint, ...) abort
+function! s:Curl(endpoint, token, ...) abort
   let options = get(a:, 1, {})
   if type(options) != v:t_dict
     return
   endif
+  let headers = get(options, 'headers', [])
 
   let base_url = get(g:, 'github_notif_base_url', 'https://api.github.com/')
   let url = base_url . a:endpoint
-  let header = flatten(map(s:BuildHeader(get(options, 'headers', [])), '["-H", v:val]'))
+  let header = flatten(map(s:BuildHeader(a:token, headers), '["-H", v:val]'))
 
   let command = ['curl', '-s', '-i'] + header + [url]
   return command
 endfunction
 
-function! s:BuildHeader(...) abort
-  let extended_headers = get(a:, 1, [])
-  let token = get(g:, 'github_notif_token', $GITHUB_TOKEN)
+function! s:BuildHeader(token, extended_headers) abort
   let headers = [
-    \   'Authorization: token ' . token,
+    \   'Authorization: token ' . a:token,
     \   'Accept: application/vnd.github.v3+json',
-    \ ] + extended_headers
+    \ ] + a:extended_headers
 
   return headers
 endfunction
